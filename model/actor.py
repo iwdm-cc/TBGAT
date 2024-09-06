@@ -225,6 +225,18 @@ class TBGAT(torch.nn.Module):
         # x forward
         h_fwd0 = x[:, [0, 1, 3]]  # dur, the earliest starting time, fwd_topo_order
 
+        # MARK:elu 为激活函数
+
+        # ELU 的提出也解决了ReLU 的问题。与ReLU相比，ELU有负值，这会使激活的平均值接近零。
+        # 均值激活接近于零可以使学习更快，因为它们使梯度更接近自然梯度。
+        # ELU函数的特点：
+        #
+        # 没有Dead ReLU问题，输出的平均值接近0，以0为中心。
+        # ELU 通过减少偏置偏移的影响，使正常梯度更接近于单位自然梯度，从而使均值向零加速学习。
+        # ELU函数在较小的输入下会饱和至负值，从而减少前向传播的变异和信息。
+        # ELU函数的计算强度更高。与Leaky ReLU类似，尽管理论上比ReLU要好，但目前在实践中没有充分的证据表明ELU总是比ReLU好。
+
+
         # forward embedding
         h_fwd1 = F.elu(self.conv_f1(h_fwd0, edge_index))
         h_fwd1 = F.dropout(h_fwd1, p=drop_out, training=self.training)
@@ -704,6 +716,7 @@ if __name__ == '__main__':
     # print(insts)
 
     env = Env()
+    # mark 调用 reset 方法生成初始状态，包括图 G 和可行的动作集合 feasible_a。
     G, (feasible_a, mark, paths) = env.reset(
         instances=insts,
         init_sol_type=init_type,
@@ -717,6 +730,7 @@ if __name__ == '__main__':
 
     # print(env.instance_size)
 
+    # mark 初始化一个图神经网络模型 Actor，并将其移动到指定设备（CPU 或 GPU）上。
     net = Actor(
         in_channels_fwd=3,
         in_channels_bwd=3,
@@ -726,6 +740,13 @@ if __name__ == '__main__':
         dropout_for_gat=0
     ).to(dev)
 
+
+    '''
+    循环执行 5 步调度操作。
+    在每一步中，调用模型 net 生成动作 sampled_a。
+    更新环境状态，并记录时间。
+    
+    '''
     data = []
     h_embd = None
     g_embd = None

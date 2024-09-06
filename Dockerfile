@@ -1,9 +1,9 @@
-FROM nvidia/cuda:10.2-cudnn8-devel-ubuntu18.04
+FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04
 
 # pay attention ARG "cuda_ver" should match base image above
 # tested ver: 10.2 + ubuntu18.04, 11.1 + ubuntu20.04 (A6000 GPU compatible) or ubuntu18.04
 # cuda version and ubuntu version should produce the same results
-ARG cuda_ver=cu102
+ARG cuda_ver=cu111
 
 # python 3.9.5
 ARG miniconda_ver=Miniconda3-py39_4.10.3-Linux-x86_64.sh
