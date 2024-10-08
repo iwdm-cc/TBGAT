@@ -12,9 +12,10 @@ machine_sequence = np.tile(np.expand_dims(
     np.arange(
         1, processing_time_reshape.shape[2] + 1), axis=0
 ).repeat(repeats=processing_time_reshape.shape[1], axis=0), (processing_time_reshape.shape[0], 1, 1))
-# print(machine_sequence.shape)
+print(machine_sequence.shape)
 data = np.stack([processing_time_reshape, machine_sequence], axis=1)
-# print(data)
+print(data.shape)
+print(data)
 np.save('tai{}x{}.npy'.format(j, m), data)
 
 # print(np.load('../test_data_jssp/syn10x10_result.npy'))

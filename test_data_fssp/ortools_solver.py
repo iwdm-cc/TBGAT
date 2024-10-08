@@ -81,7 +81,7 @@ if __name__ == '__main__':
     h = 99
     testing_type = ['tai']  # ['tai']
     tai_problem_j = [20]  # [20, 20, 20]
-    tai_problem_m = [20]  # [5, 10, 20]
+    tai_problem_m = [5]  # [5, 10, 20]
     start_segment_flag = 5
     end_segment_flag = 10
 
@@ -126,6 +126,7 @@ if __name__ == '__main__':
                     print('Or-Tools mean time:', time_log.mean())
             else:
                 # ortools solver
+
                 from pathlib import Path
                 ortools_path = Path('./{}{}x{}_result.npy'.format(test_t, p_j, p_m))
                 if not ortools_path.is_file():

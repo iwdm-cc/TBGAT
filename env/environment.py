@@ -65,6 +65,26 @@ class Env:
     def _init_solver(self, init, device, p_lists=None, prt=False):
         init, device = init, device
 
+        '''
+        这段代码是一个使用Python编写的函数_init_solver，它用于为一个批量的作业调度问题实例初始化一个图表示，并通过消息传递计算每个操作的最早开始时间（EST）和最晚开始时间（LST），以及整个批次的完工时间（make_span）和操作计数。
+以下是对代码功能的详细解释：
+输入参数:
+init: 表示实例初始化的方法，可以是'spt'（最短加工时间）、'fdd-divide-wkr'（FDD除以工作剩余量）或'plist'（预先给定的优先级列表）。
+device: 指定计算设备，可以是CPU或CUDA设备。
+p_lists: 可选的优先级列表，如果未提供，则随机生成。
+prt: 打印标志，用于控制是否打印消息传递的运行时间。
+初始化:
+遍历每个作业调度实例，准备相关数据结构，如操作矩阵、机器矩阵、甘特图、操作ID在机器上的分配等。
+构造图:
+根据选定的初始化方法，构造作业之间的优先关系图（precedent constraint graph）和机器之间的冲突关系图（machine clique graph）。
+计算EST和LST:
+使用消息传递算法评估图批次，计算每个操作的EST、LST、make_span和操作计数。
+更新图节点特征:
+将计算得到的EST、LST和操作持续时间（duration）进行归一化，并将这些特征添加到图的节点特征中。
+返回结果:
+返回包含更新后特征的图批次、make_span和操作计数。
+        '''
+
         Gs = []
         for _, instance in enumerate(self.instances):
 
@@ -576,6 +596,45 @@ class Env:
               mask_previous_action=False,
               p_lists=None,
               longest_path_finder='pytorch'):
+
+        """
+       mark 该方法初始化了一个调度问题的实例。它设置了迭代计数器、实例列表、实例大小、作业数量、机器数量、图的大小、每个实例的节点数量、起始节点和终止节点等属性。它还根据给定的禁忌搜索大小参数设置了禁忌列表的大小，如果没有提供禁忌搜索大小，则根据作业数量和机器数量动态计算禁忌列表的大小。此外，它还初始化了之前的动作列表、禁忌搜索列表、最长路径查找器，并计算了机器数量的累计和。最后，它调用 _init_solver 方法来计算初始解，并更新当前目标值和最优目标值。
+以下是代码的主要步骤：
+初始化基本参数：
+设置迭代计数器 self.itr 为 0。
+存储传入的实例列表 instances。
+计算每个实例的大小 self.instance_size。
+计算每个实例的作业数量 self.job_count 和机器数量 self.machine_count。
+计算图的大小 self.size，即作业数量和机器数量的堆叠。
+计算每个实例的节点数量 self.num_nodes_per_example。
+计算起始节点 self.S 和终止节点 self.T。
+设置实例数量 self.num_instance。
+设置禁忌搜索参数：
+如果 tabu_size 不为 -1，则为每个实例设置相同的禁忌搜索大小。
+否则，根据每个实例的作业数量和机器数量动态计算禁忌搜索大小，并存储在 self.tabu_size 中。
+初始化禁忌列表 self.tabu_list 为 -1 的矩阵。
+初始化其他参数：
+初始化之前的动作列表 self.previous_action 为 -1 的张量。
+设置是否屏蔽之前动作的标志 self.mask_previous_action。
+设置最长路径查找器 self.longest_path_finder。
+计算机器数量的累计和 self._machine_count_cumsum。
+计算初始解：
+打印 "Computing initial solutions..."。
+调用 _init_solver 方法计算初始解 G_batch、完工时间 make_span 和计数 count。
+更新目标值和最优解：
+更新当前目标值 self.current_objs 和最优目标值 self.incumbent_objs 为初始解的完工时间。
+存储图的批处理 self.G_batch。
+返回结果：
+返回图的批处理 self.G_batch 和获取候选动作的方法 self.get_candidate_moves()。
+        :param instances:
+        :param init_sol_type:
+        :param tabu_size:
+        :param device:
+        :param mask_previous_action:
+        :param p_lists:
+        :param longest_path_finder:
+        :return:
+        """
         self.itr = 0
         self.instances = instances
         self.instance_size = np.array([ins.shape[1:] for ins in instances])

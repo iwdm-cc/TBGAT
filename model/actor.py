@@ -255,6 +255,8 @@ class TBGAT(torch.nn.Module):
         h_bwd3 = self.conv_b3(h_bwd2, edge_index)
 
         # node embedding
+        # mark dim=-1 从张量的最后一个维度开始计数。因此，dim=-1 总是指张量的最后一个维度。
+        # mark 在图神经网络（GNN）或序列处理任务中很常见，特别是当你想要将来自不同方向（如前向和后向）的信息合并时.
         h_node = torch.cat([h_fwd3, h_bwd3], dim=-1)
 
         # graph pooling via average pooling
@@ -725,6 +727,7 @@ if __name__ == '__main__':
         mask_previous_action=backward_option,
         longest_path_finder=path_finder
     )
+    print(G,"图")
 
     env.cpm_eval()
 

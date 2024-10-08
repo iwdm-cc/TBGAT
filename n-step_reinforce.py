@@ -1,21 +1,22 @@
-import time
 import random
+import time
+from pathlib import Path
+
 import numpy as np
-import numpy.random
 import torch
 import torch.optim as optim
-from env.environment import Env
-from model.actor import Actor
-from env.generateJSP import uni_instance_gen as inst_gen
-from pathlib import Path
-from env.message_passing_evl import exact_solver
-from parameters import args
 from tqdm import tqdm
+
+from env.environment import Env
+from env.generateJSP import uni_instance_gen as inst_gen
+from env.message_passing_evl import exact_solver
+from model.actor import Actor
+from parameters import args
 
 
 class NeuralTabu:
     def __init__(self):
-
+        # mark 初始化环境、参数设置等
         self.env_training = Env()
         self.env_validation = Env()
         self.eps = np.finfo(np.float32).eps.item()
@@ -69,7 +70,7 @@ class NeuralTabu:
 
     def learn(self, rewards, log_probs, ents, optimizer):
 
-        # compute discounted return
+        # compute discounted return 计算折扣回报
         R = torch.zeros_like(rewards[0], dtype=torch.float, device=rewards[0].device)
         returns = []
         for r in rewards[::-1]:
@@ -77,22 +78,22 @@ class NeuralTabu:
             returns.insert(0, R)
         returns = torch.cat(returns, dim=-1)
 
-        # normalizing return
+        # normalizing return 归一化处理
         normalized_return = torch.div(
             returns - returns.mean(dim=-1, keepdim=True),
             torch.std(returns, dim=-1, unbiased=False, keepdim=True) + self.eps
         )
 
-        # compute log p
+        # compute log p 计算策略梯度损失
         log_probs = torch.cat(log_probs, dim=-1)
 
-        # compute entropy loss
+        # compute entropy loss 熵损失
         ents = torch.cat(ents, dim=-1)
 
         # compute REINFORCE loss with entropy loss
         loss = - (log_probs * normalized_return + args.ent_coeff * ents).sum(dim=-1).mean()
 
-        # backward
+        # backward 反向传播
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -150,6 +151,8 @@ class NeuralTabu:
     def train(self):
 
         # training seeds
+        # mark 设置随机数生成器的种子，确保在训练过程中，每次生成的随机数序列都是相同的。
+        #  这样做的好处是可以保证训练的可重复性，即在相同的条件下，每次运行训练代码都能得到相同的结果。
         torch.manual_seed(args.training_seed)
         random.seed(args.training_seed)
         np.random.seed(args.training_seed)
@@ -200,6 +203,7 @@ class NeuralTabu:
               )
         print()
 
+        # mark 强化学习算法中的策略网络
         policy = Actor(
             in_channels_fwd=args.in_channels_fwd,
             in_channels_bwd=args.in_channels_bwd,
@@ -209,6 +213,7 @@ class NeuralTabu:
             dropout_for_gat=args.dropout_for_gat
         ).to(dev)
 
+        # mark Adam 优化算法
         optimizer = optim.Adam(policy.parameters(), lr=args.lr)
 
         training_log = []
@@ -224,6 +229,8 @@ class NeuralTabu:
             # generate training data on the fly
             instances = np.array([inst_gen(args.j, args.m, args.l, args.h) for _ in range(args.batch_size)])
 
+            print("Generating batch {}".format(batch_i))
+            print("实例列表 {}",instances)
             # reset the training env with training data
             G, (action_set, optimal_mark, paths) = self.env_training.reset(
                 instances=instances,
@@ -232,7 +239,7 @@ class NeuralTabu:
                 device=dev,
                 mask_previous_action=args.mask_previous_action == 'True',
                 longest_path_finder=args.path_finder)
-
+            print("图节点 {}", G)
             reward_buffer = []
             log_prob_buffer = []
             entropy_buffer = []

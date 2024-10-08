@@ -15,8 +15,14 @@ def permute_rows(x):
 def uni_instance_gen(n_j, n_m, low, high):
     times = np.random.randint(low=low, high=high, size=(n_j, n_m))
     machines = np.expand_dims(np.arange(1, n_m+1), axis=0).repeat(repeats=n_j, axis=0)
+    print("生成测试数据times {}\n",times )
+    print("生成测试数据machines {}\n",machines )
     if args.problem_type == 'JSSP':
         machines = permute_rows(machines)
+    elif args.problem_type == 'FJSP':
+        machines = permute_rows(machines)
+    print("处理之后生成测试数据 machines {}\n", machines)
+    print("处理之后生成测试数据time {}\n", times)
     return times, machines
 
 

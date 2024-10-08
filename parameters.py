@@ -17,6 +17,7 @@ parser.add_argument('--out_channels', type=int, default=128)
 parser.add_argument('--heads', type=int, default=4)
 parser.add_argument('--dropout_for_gat', type=float, default=0)
 ## which embed net to use, if TPMCAM, its config is the same as that in the paper, the above params are no use.
+## 如果使用TPMCAM嵌入网络，其配置与论文中的相同，则上述参数无效。
 parser.add_argument('--embed_net', type=str, default='TPMCAM', choices=('TBGAT', 'TPMCAM'))
 ## training parameters
 parser.add_argument('--j', type=int, default=10)
@@ -27,16 +28,21 @@ parser.add_argument('--lr', type=float, default=5e-5)  # TPMCAM: 5e-5; TBGAT: 1e
 parser.add_argument('--steps_learn', type=int, default=10)
 parser.add_argument('--transit', type=int, default=500)
 parser.add_argument('--batch_size', type=int, default=64)
-parser.add_argument('--total_instances', type=int, default=128000)
+parser.add_argument('--total_instances', type=int, default=128)
 parser.add_argument('--step_validation', type=int, default=10)
 parser.add_argument('--ent_coeff', type=float, default=1e-5)
 parser.add_argument('--validation_inst_number', type=int, default=100)
 parser.add_argument('--training_seed', type=int, default=6)  # 6
 parser.add_argument('--embed_tabu_label', type=str, default='False', choices=('True', 'False'))
-parser.add_argument('--problem_type', type=str, default='JSSP', choices=('FSSP', 'JSSP'))
+parser.add_argument('--problem_type', type=str, default='FJSP', choices=('FSSP', 'JSSP','FJSP'))
+
 # ts_outer: DRL select only from non-tabu (if all tabu, then DRL consider all mv and select)
 # ts_inner: if exists non-tabu, DRL select from non-tabu, elif exists mvs meet aspiration criteria, DRL select from
 # aspiration, else random select.
+#ts_outer: DRL 仅从未被禁忌的移动中选择（如果所有移动都被禁忌了，则 DRL 考虑所有移动并选择）
+# ts_inner: 如果存在未被禁忌的移动，则 DRL 从未被禁忌的移动中选择；如果存在满足渴望标准的移动，
+# 则 DRL 从满足渴望标准的移动中选择；否则随机选择。
+
 parser.add_argument('--action_selection_type', type=str, default='ls', choices=('ls', 'ts_outer', 'ts_inner'))
 ## testing parameters
 parser.add_argument('--test_specific_size', type=str, default='True', choices=('True', 'False'))
